@@ -23,13 +23,13 @@ specifies an Enigma machine with the following intialization state:
   + Grundstellung (ground setting)           = C, M, K
   + Ringstellung (ring setting)              = 18, 04, 22
   + Umkehrwalze (reflector)                  = B
-  + Steckerverbindungen (Steckerboard pairs) = (A, T), (Y, K), (V, P)
+  + Steckerverbindungen (Steckerboard pairs) = (A, T), (Y, K), (V, P).
 
 Some requirements:
   + rotors must be in [1, 5]
   + ground setting must be in [A, Z]
   + ring setting must be a two digit number in [01, 26]
-  + up to 10 Steckerboard pairs are supported
+  + up to 10 Steckerboard pairs are supported.
 
 Hello, World!
 ```bash
