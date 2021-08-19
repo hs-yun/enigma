@@ -28,7 +28,7 @@ CDEFGHIJKLMNOPQRSTUVWXYZAB (visible portion of Rotor I)
 
 The key thing to note here is that changing the Grundstellung rotates the entire rotor, internals and all. This "stepping" of the rotors was integral to the design of Enigma, and allowed for each typed letter to be encoded using a different instance of the rotor's substitution cipher.
 
-*** GRUNDSTELLUNG - OPERATION
+***GRUNDSTELLUNG - OPERATION
 So far, we've only considered the details of a single Enigma rotor. From this point on, we'll start to piecewise assemble the Enigma I machine. In this section, we will assume the following model for Enigma:
 
 Operator -> Keyboard -> ETW (Entrittswalze) -> Rightmost rotor
@@ -185,7 +185,7 @@ As an example, suppose we have WL, L->R = III, II, I. Suppose all rotors have RS
 
 Aside from this "quirk," the turnover behavior of Enigma's rotors was straightforward.
 
-** THE PLUGBOARD
+**THE PLUGBOARD
 The plugboard, or Steckerbrett, was a feature of military-use Enigma machines that allowed the operator to swap up to ten pairs of letters before feeding them into Enigma's rotors. The settings of the plugboard (Steckerverbindungen) would also have to be known to efficiently decrypt an encrypted message.
 
 For example, if the operator made the pair (A, Z), then on each keystroke 'A', 'Z' would be sent to Enigma's rotors and vice versa. Like the pairs in the UKW, this was a reciprocal pairing. Our updated and final model of the Enigma I machine is then as follows:
