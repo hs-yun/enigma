@@ -1,0 +1,276 @@
+*ENIGMA INTERNALS
+
+**HOW WE WILL REPRESENT AN ENIGMA ROTOR
+An Enigma rotor consists of 3 main parts: 1) input contacts, 2) output contacts, and 3) visible outer tape (for initial setting). The input contacts and wired to the output contacts internally; each rotor's wiring is unique and corresponds to a substitution-cipher pattern.
+
+This last point is somewhat subtle; each Enigma rotor does not define an instance of a substitution cipher in the sense of A->D, B->K, ... but rather a general pattern for mapping 26 inputs to 26 outputs in a one-to-one fashion. To make this distinction clear, we use a character set of numbers and lowercase letters to name the input and output contacts.
+
+Thus, the following is a representation of Rotor I in start position (Grundstellung) 'A' and ring setting (Ringstellung) '1'. (More on these settings later.) Note that the wiring is represented implicitly; to find the output contact wired to input contact '0', it suffices to simply look in the row of output contacts for '0'.
+
+**************************       
+0123456789abcdefghijklmnop (Rotor I input contacts)
+kmo6035flp142acj7nibh8dge9 (Rotor I output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor I)
+**************************
+
+**GRUNDSTELLUNG
+Grundstellung refers to the operator-set start position of each of the rotors prior to encryption and decryption. Each Enigma machine had a set of windows, one for each rotor. To set the start position of Rotor I to 'C', one simply had to rotate Rotor I until 'C' was visible in the window. In our representation, the window will correspond to the leftmost postion of the rotor.
+
+The following represents Rotor I with GS (Grundstellung) = 'C' and RS (Ringstellung) = 1. (More on RS later.)
+
+**************************       
+23456789abcdefghijklmnop01 (Rotor I input contacts)
+o6035flp142acj7nibh8dge9km (Rotor I output contacts)
+--------------------------
+CDEFGHIJKLMNOPQRSTUVWXYZAB (visible portion of Rotor I)
+**************************
+
+The key thing to note here is that changing the Grundstellung rotates the entire rotor, internals and all. This "stepping" of the rotors was integral to the design of Enigma, and allowed for each typed letter to be encoded using a different instance of the rotor's substitution cipher.
+
+*** GRUNDSTELLUNG - OPERATION
+So far, we've only considered the details of a single Enigma rotor. From this point on, we'll start to piecewise assemble the Enigma I machine. In this section, we will assume the following model for Enigma:
+
+Operator -> Keyboard -> ETW (Entrittswalze) -> Rightmost rotor
+
+where ETW is the entry wheel, a fixed wheel that essentially arranges the wiring from the keyboard in a circular pattern that can be fed into the rotors.
+
+On each keystroke, the rightmost rotor takes one step prior to encoding the input. Let's consider input "KK", with Rotor I, GS = 'A', RS = 1.
+
+**************************       
+0123456789abcdefghijklmnop (Rotor I input contacts)
+kmo6035flp142acj7nibh8dge9 (Rotor I output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor I)
+**************************
+
+On keystroke 'K', Rotor I takes one step to GS = 'B'.
+
+**************************       
+123456789abcdefghijklmnop0 (Rotor I input contacts)
+mo6035flp142acj7nibh8dge9k (Rotor I output contacts)
+--------------------------
+BCDEFGHIJKLMNOPQRSTUVWXYZA (visible portion of Rotor I)
+**************************
+
+The ETW then sends a signal from its output contact corresponding to keystroke 'K'. Since the ETW is a fixed wheel this will always correspond to the 11th output contact, so we'll just go ahead and represent the ETW's output contacts with capital letters.
+
+ETW outputs at 'K', which lights up input contact 'b' in Rotor I. The output contact of input contact 'b' is marked with a ^. This will be passed on to the next rotor.
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+**********K***************       
+123456789abcdefghijklmnop0 (Rotor I input contacts)
+mo6035flp142acj7nibh8dge9k (Rotor I output contacts)
+------------------^-------
+BCDEFGHIJKLMNOPQRSTUVWXYZA (visible portion of Rotor I)
+**************************
+
+Operator presses 'K' again, Rotor I takes another step, and this time the ETW output lights up input contact 'c' in Rotor I. This corresponds to a different output contact; the same keystroke 'K' has given two different outputs. That is, if Rotor I's wiring defines a one-to-one function from S = { 0, 1, ..., 25 } to itself, the step has had the effect of changing the names of the 26 elements in S. If we started off having given '0' the name 'A', the first step renamed '0' to 'B'. f(0) = 4 throughout, but the names of '0' and '4' have changed.
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+**********K***************       
+23456789abcdefghijklmnop01 (Rotor I input contacts)
+o6035flp142acj7nibh8dge9km (Rotor I output contacts)
+------------^-------------
+CDEFGHIJKLMNOPQRSTUVWXYZAB (visible portion of Rotor I)
+**************************
+
+This sort of dynamic substitution cipher was, especially early on, crucial to Enigma's performance.
+
+**RINGSTELLUNG
+So far, we've only looked at turns of the entire rotor, internal wiring and all. However, Enigma allowed for the outer tape of the rotor (the visible portion) to be decoupled from the internal wiring and rotated independently. (This was to be set once prior to encryption/decryption; this sort of decoupled rotation did not occur during the operation of the machine.)
+
+Let's start again with R(I, A, 1). 
+
+**************************       
+0123456789abcdefghijklmnop (Rotor I input contacts)
+kmo6035flp142acj7nibh8dge9 (Rotor I output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor I)
+**************************
+
+This is said to be in ring position 1 because the first input contact '0' is aligned with the first letter 'A' on the outer tape (apologies for this slightly confusing use of notation). Ring position 2, then, would correspond to the following, where input contact '0' is aligned with the second letter 'B'.
+
+**************************       
+p0123456789abcdefghijklmno (Rotor I input contacts)
+9kmo6035flp142acj7nibh8dge (Rotor I output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor I)
+**************************
+
+Try and write the representation for R(I, D, 18).
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+**************************       
+cdefghijklmnop0123456789ab (Rotor I input contacts)
+2acj7nibh8dge9kmo6035flp14 (Rotor I output contacts)
+--------------------------
+DEFGHIJKLMNOPQRSTUVWXYZABC (visible portion of Rotor I)
+**************************
+
+*MULTIPLE ROTORS AND THE REFLECTOR
+Enigma worked by chaining multiple rotors together; current would flow from right to left through the rotors and be reflected back left to right by the Umkehrwalze (UKW). Since these were circuits, the UKW had to send the current back along a different path (though through the same configuration of the rotors as when it received the current). To achieve this, it maintained reciprocal pairs of letters; if the leftmost rotor outputted a 'Y', the UKW would return an 'A' and vice versa. (Later models allowed for these pairs to be reconfigured.) The reciprocality of the UKW pairs meant that the same machine could be used for encryption and decryption. However, it also meant that a letter would never be encoded to itself, as it would always take a different path back through the rotors. This was a cryptographic weakness that was eventually exploited by codebreakers.
+
+On the physical machine, the returning current would light up a letter on a lampboard, indicating the encoded (or decoded) input to the operator. We will now assume the following model:
+
+Operator -> Keyboard -> ETW -> R rotor -> C rotor -> L rotor -> UKW
+UKW -> L rotor -> C rotor -> R rotor -> ETW -> Lampboard
+
+Allowing now for multiple rotors obviously raises the possibility of switching their order. This wheel order, or Walzenlage, also had to be specified to the operator.
+
+We'll now look at a trace through the (almost) complete Enigma I machine. Here's how we'll start out:
+
+WL, L->R    = III, II, I
+I(GS, RS)   = ('C', 18)
+II(GS, RS)  = ('M', 4)
+III(GS, RS) = ('A', 1)
+
+Let's set it up:
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (ETW)
+**************************       
+bcdefghijklmnop0123456789a (Rotor I input contacts)
+42acj7nibh8dge9kmo6035flp1 (Rotor I output contacts)
+--------------------------
+CDEFGHIJKLMNOPQRSTUVWXYZAB (visible portion of Rotor I)
+**************************
+9abcdefghijklmnop012345678 (Rotor II input contacts)
+13aejokg64d7nc8li09f2pmhb5 (Rotor II output contacts)
+--------------------------
+MNOPQRSTUVWXYZABCDEFGHIJKL (visible portion of Rotor II)
+**************************
+0123456789abcdefghijklmnop (Rotor III input contacts)
+j061f2i3g4k5ldp7o8n9mbhaec (Rotor III output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor III)
+**************************
+       Umkehrwalze
+
+Operator types keystroke 'T'. Rotor I takes one step. ETW sends 'T' down the pipes (along |). The reflector gets input at 'D', and sends out its reciprocal pair 'H'. That current now travels back through the rotors (along ^) to 'L' on the ETW. In this way, 'T' becomes 'L'.
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (ETW)
+***********^*******|******       
+cdefghijklmnop0123456789ab (Rotor I input contacts)
+2acj7nibh8dge9kmo6035flp14 (Rotor I output contacts)
+-----^--------------|-----
+DEFGHIJKLMNOPQRSTUVWXYZABC (visible portion of Rotor I)
+*****^**************|******
+9abcdefghijklmnop012345678 (Rotor II input contacts)
+13aejokg64d7nc8li09f2pmhb5 (Rotor II output contacts)
+-|-^----------------------
+MNOPQRSTUVWXYZABCDEFGHIJKL (visible portion of Rotor II)
+*|*^**********************
+0123456789abcdefghijklmnop (Rotor III input contacts)
+j061f2i3g4k5ldp7o8n9mbhaec (Rotor III output contacts)
+---|---^------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor III)
+***|***^******************
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (UKW)
+   \---/
+
+This is very close to the actual functioning of Enigma I. There are only two missing pieces, which we will consider now.
+
+**NOTCH TURNOVER
+Each Enigma rotor also had one or more notches on its outer ring, the position of which varied from rotor to rotor. When this notch was engaged on a rotor, it would cause the rotor on its left to rotate one position. As an example, Rotor I had a notch at 'Y'. The effect was that when Rotor I stepped from 'Q' to 'R', it would cause the rotor on its left to take a step also.
+
+For rotors with one notch each, this meant that the center rotor would take a step for every 26 steps of the rightmost rotor, and that the leftmost rotor would take a step for every 26 steps of the center rotor.
+
+However, as a result of Enigma I's mechanical design, there was also a "double-stepping" phenomenon present in the center rotor. The overall effect was as follows: if the engagement of the rightmost rotor's notch caused the center rotor to step into its own notch position, the next step would increment both the leftmost and center rotors.
+
+As an example, suppose we have WL, L->R = III, II, I. Suppose all rotors have RS = 1, and let III, II, I start at 'A', 'D', and 'P', respectively. This is how the double-stepping sequence would play out:
+
+1. The operator presses a key, rotating I. The state is now ADQ.
+2. The operator presses a key, rotating I. This transition from Q->R in Rotor I engages its notch, and causes both Rotor I and II to rotate. The state is now AER.
+3. The operator presses a key, rotating I. But as Rotor II is now in its notch position, this causes Rotor II to step again, resulting in a double-step. This double-step also causes Rotor III to rotate, giving us a final state of BFS.
+
+Aside from this "quirk," the turnover behavior of Enigma's rotors was straightforward.
+
+** THE PLUGBOARD
+The plugboard, or Steckerbrett, was a feature of military-use Enigma machines that allowed the operator to swap up to ten pairs of letters before feeding them into Enigma's rotors. The settings of the plugboard (Steckerverbindungen) would also have to be known to efficiently decrypt an encrypted message.
+
+For example, if the operator made the pair (A, Z), then on each keystroke 'A', 'Z' would be sent to Enigma's rotors and vice versa. Like the pairs in the UKW, this was a reciprocal pairing. Our updated and final model of the Enigma I machine is then as follows:
+
+Operator -> Keyboard -> Plugboard -> ETW -> R rotor -> C rotor -> L rotor -> UKW
+UKW -> L rotor -> C rotor -> R rotor -> ETW -> Lampboard
+
+With this in mind, let's do one final trace of Enigma I. 
+
+Here's our setup:
+WL, L->R    = III, II, I
+I(GS, RS)   = ('P', 10)
+II(GS, RS)  = ('M', 4)
+III(GS, RS) = ('A', 1)
+Plugboard   = (T, A)
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (ETW)
+**************************       
+6789abcdefghijklmnop012345 (Rotor I input contacts)
+5flp142acj7nibh8dge9kmo603 (Rotor I output contacts)
+--------------------------
+PQRSTUVWXYZABCDEFGHIJKLMNO (visible portion of Rotor I)
+**************************
+9abcdefghijklmnop012345678 (Rotor II input contacts)
+13aejokg64d7nc8li09f2pmhb5 (Rotor II output contacts)
+--------------------------
+MNOPQRSTUVWXYZABCDEFGHIJKL (visible portion of Rotor II)
+**************************
+0123456789abcdefghijklmnop (Rotor III input contacts)
+j061f2i3g4k5ldp7o8n9mbhaec (Rotor III output contacts)
+--------------------------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor III)
+**************************
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (UKW)
+
+Operator presses 'A'. Rotor I takes one step. Plugboard sends out 'T' to ETW. ETW sends 'T' down the pipes, which return 'C'.
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (ETW)
+**^****************|******       
+789abcdefghijklmnop0123456 (Rotor I input contacts)
+flp142acj7nibh8dge9kmo6035 (Rotor I output contacts)
+------------------^----|--
+QRSTUVWXYZABCDEFGHIJKLMNOP (visible portion of Rotor I)
+******************^****|**
+9abcdefghijklmnop012345678 (Rotor II input contacts)
+13aejokg64d7nc8li09f2pmhb5 (Rotor II output contacts)
+^-------|-----------------
+MNOPQRSTUVWXYZABCDEFGHIJKL (visible portion of Rotor II)
+^*******|*****************
+0123456789abcdefghijklmnop (Rotor III input contacts)
+j061f2i3g4k5ldp7o8n9mbhaec (Rotor III output contacts)
+-^---------------|--------
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor III)
+*^***************|********
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (UKW)
+ \---------------/
+
+Operator presses 'M'. Rotor I takes one step. Since this step is 'Q' to 'R', Rotor II takes one step as well. 'M' is not a plugboard pair, so it goes unmodified down the pipes, which return 'D'.
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (ETW)
+***^********|*************       
+89abcdefghijklmnop01234567 (Rotor I input contacts)
+lp142acj7nibh8dge9kmo6035f (Rotor I output contacts)
+-----------^------|-------
+RSTUVWXYZABCDEFGHIJKLMNOPQ (visible portion of Rotor I)
+***********^******|*****
+abcdefghijklmnop0123456789 (Rotor II input contacts)
+3aejokg64d7nc8li09f2pmhb51 (Rotor II output contacts)
+--------------^----|----
+NOPQRSTUVWXYZABCDEFGHIJKLM (visible portion of Rotor II)
+**************^****|******
+0123456789abcdefghijklmnop (Rotor III input contacts)
+j061f2i3g4k5ldp7o8n9mbhaec (Rotor III output contacts)
+|-----------------------^-
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (visible portion of Rotor III)
+|***********************^*
+ABCDEFGHIJKLMNOPQRSTUVWXYZ (UKW)
+\-----------------------/
+
+Note that with the same initial settings, "CD" returns "AM", since the current travels along the same circuit (just in the opposite direction).
+
+Thanks for reading! I hope you learned something about Enigma.
+
+Sources:
+
+https://cryptomuseum.com/crypto/enigma/working.htm
+https://en.wikipedia.org/wiki/Enigma_machine#Reflector
+http://users.telenet.be/d.rijmenants/en/enigmatech.htm#rotors
