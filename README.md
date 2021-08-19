@@ -2,6 +2,8 @@
 
 A Java program that simulates an Enigma I machine, taking in initial settings from the command-line, reading plaintext from standard input, and writing ciphertext to standard output (or vice versa).
 
+enigma-tutorial.txt is a short write-up on the internal workings of the Enigma machine.
+
 ## Compilation
 ```bash
 javac Enigma.java
